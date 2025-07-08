@@ -17,3 +17,8 @@ MOVE_HIGHLIGHT = (106, 168, 79, 150)
 RED = (255, 0, 0)
 INFO_BG = (240, 240, 240)  # Цвет фона панели истории
 TEXT_COLOR = (50, 50, 50)  # Цвет текста истории
+
+# В constants.py добавить
+SCROLL_BAR_WIDTH = 20
+SCROLL_BAR_COLOR = (200, 200, 200)
+SCROLL_BAR_HOVER_COLOR = (180, 180, 180)

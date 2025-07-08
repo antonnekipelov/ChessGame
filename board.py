@@ -158,46 +158,59 @@ class ChessBoard:
                     self.current_castling_rights.bks = False
 
     def get_valid_moves(self):
+        """
+        Генерирует все допустимые ходы для текущей позиции с учетом:
+        - Шахов
+        - Матов
+        - Взятия на проходе
+        - Рокировки
+        """
+        # Сохраняем текущее состояние специальных ходов
         temp_enpassant_possible = self.enpassant_possible
-        temp_castle_rights = CastleRights(self.current_castling_rights.wks,
-                                          self.current_castling_rights.bks,
-                                          self.current_castling_rights.wqs,
-                                          self.current_castling_rights.bqs)
+        temp_castle_rights = CastleRights(
+            self.current_castling_rights.wks,
+            self.current_castling_rights.bks,
+            self.current_castling_rights.wqs,
+            self.current_castling_rights.bqs
+        )
 
-        # 1. Генерируем все возможные ходы
+        # 1. Генерируем все возможные ходы без учета шаха
         moves = self.get_all_possible_moves()
 
-        # 2. Для каждого хода делаем ход
-        for i in range(len(moves)-1, -1, -1):
+        # 2. Фильтруем ходы, оставляющие короля под шахом
+        for i in range(len(moves)-1, -1, -1):  # Идем в обратном порядке для безопасного удаления
             self.make_move(moves[i])
-            # 3. После хода проверяем, не под шахом ли наш король
-            self.white_to_move = not self.white_to_move
+            self.white_to_move = not self.white_to_move  # Переключаем очередь хода для проверки
+            
             if self.in_check():
-                # 4. Если под шахом, удаляем ход из списка разрешенных
-                moves.remove(moves[i])
-            self.white_to_move = not self.white_to_move
+                moves.remove(moves[i])  # Удаляем недопустимый ход
+                
+            self.white_to_move = not self.white_to_move  # Возвращаем очередь хода
             self.undo_move()
 
-        # 5. Если нет разрешенных ходов, это мат или пат
-        if len(moves) == 0:
+        # 3. Проверяем конечное состояние игры
+        if len(moves) == 0:  # Нет допустимых ходов
             if self.in_check():
                 self.checkmate = True
+                # Для отладки можно добавить:
+                # print(f"Мат! Победили {'черные' if self.white_to_move else 'белые'}")
             else:
                 self.stalemate = True
+                # print("Пат - ничья!")
         else:
             self.checkmate = False
             self.stalemate = False
 
-        # 6. Проверяем возможность рокировки
+        # 4. Добавляем рокировки, если они возможны
         if self.white_to_move:
-            self.get_castle_moves(
-                self.white_king_pos[0], self.white_king_pos[1], moves)
+            self.get_castle_moves(self.white_king_pos[0], self.white_king_pos[1], moves)
         else:
-            self.get_castle_moves(
-                self.black_king_pos[0], self.black_king_pos[1], moves)
+            self.get_castle_moves(self.black_king_pos[0], self.black_king_pos[1], moves)
 
+        # Восстанавливаем временные параметры
         self.enpassant_possible = temp_enpassant_possible
         self.current_castling_rights = temp_castle_rights
+
         return moves
 
     def in_check(self):
