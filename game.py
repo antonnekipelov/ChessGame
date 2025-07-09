@@ -35,6 +35,7 @@ class Game:
         self.scroll_bar_dragging = False
         # Флаг наведения на полосу прокрутки
         self.scroll_bar_hovered = False
+        self.move_notation = ''
     
     # Метод загрузки изображений шахматных фигур
     def load_pieces(self):
@@ -249,14 +250,26 @@ class Game:
         # Проверяем состояние мата
         if self.board.checkmate:
             font = pygame.font.SysFont('Arial', 32)
+            bufer = self.move_history[-1]
+            if bufer and bufer.endswith('+'):
+                bufer = bufer[:-1] + '#'
+                self.move_history[-1] = bufer
+            #print(self.move_notation)
             # Определяем победителя
             if self.board.white_to_move:
                 text = font.render('Черные выиграли! Мат!', True, RED)
+                """len(self.move_history)"""
+                #self.move_history.append(f"{self.move_notation}")
             else:
                 text = font.render('Белые выиграли! Мат!', True, RED)
+                #self.move_history.append(f"{len(self.move_history)+1}. {self.move_notation}")
             # Рисуем сообщение о победе по центру доски
             self.screen.blit(text, (BOARD_WIDTH//2 - text.get_width()//2, HEIGHT//2 - text.get_height()//2))
             self.game_over = True
+            #length = len(self.move_history)
+            #print(length)
+            print(self.move_history)
+            
         # Проверяем состояние пата
         elif self.board.stalemate:
             font = pygame.font.SysFont('Arial', 32)
@@ -291,35 +304,35 @@ class Game:
                     # Выполняем ход
                     self.board.make_move(valid_move)
                     # Получаем нотацию хода
-                    move_notation = valid_move.get_chess_notation()
+                    self.move_notation = valid_move.get_chess_notation()
                     
                     # Добавляем обозначение шаха или мата
-                    if self.board.checkmate:
-                        move_notation += '#'
+                    """move_notation += '#'
                         # Добавляем сообщение о победе
                         winner = 'Белые' if not self.board.white_to_move else 'Черные'
-                        self.move_history.append(f"{winner} выиграли: Мат!")
-                    elif self.board.in_check():
-                        move_notation += '+'
+                        self.move_history.append(f"{winner} выиграли: Мат!")"""
+                    if self.board.in_check():
+                        self.move_notation += '+'
                     
                     # Форматируем историю ходов
                     if self.board.white_to_move:  # Черные только что сходили
                         if not self.move_history or len(self.move_history[-1].split()) >= 3:
-                            self.move_history.append(f"{len(self.move_history)+1}. {move_notation}")
+                            self.move_history.append(f"{len(self.move_history)+1}. {self.move_notation}")
                         else:
-                            self.move_history[-1] += f" {move_notation}"
+                            self.move_history[-1] += f" {self.move_notation}"
                     else:  # Белые только что сходили
                         if self.move_history and len(self.move_history[-1].split()) < 3:
-                            self.move_history[-1] += f" {move_notation}"
+                            self.move_history[-1] += f" {self.move_notation}"
+                           
                         else:
-                            self.move_history.append(f"{len(self.move_history)+1}... {move_notation}")
+                            self.move_history.append(f"{len(self.move_history)+1}. {self.move_notation}")
                     
                     # Сбрасываем выбранную клетку и клики
                     self.selected_square = ()
                     self.player_clicks = []
                     self.valid_moves = []
                     return
-            
+            print(self.move_history)
             # Если ход недопустимый, оставляем только первый клик
             self.player_clicks = [self.selected_square]
         
